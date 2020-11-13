@@ -1,0 +1,114 @@
+<template>
+  <div>
+    <el-row>
+      <el-col :span="8">
+        <el-button @click="backTwo()">返回</el-button>
+      </el-col>
+      <el-col :span="8"
+        style="text-align:center">
+        <el-tag class="titleClass">
+          <div style="margin-top:6px;">消费记录</div>
+        </el-tag>
+      </el-col>
+      <el-col :span="8">&nbsp;</el-col>
+    </el-row>
+
+    <el-row class="table_border"
+      style="margin-top:16px">
+      <el-col :span="8"
+        class="table_border thead">姓名</el-col>
+      <el-col :span="8"
+        class="table_border thead">消费时间</el-col>
+      <el-col :span="8"
+        class="table_border thead">消费金额</el-col>
+      <div v-for="(item,index) in jsonFoodData"
+        :key="item+index.toString()">
+        <el-col :span="8"
+          class="table_border thead"
+          :style="index%2==0?'background:#dcdbdb':''">杨志强</el-col>
+        <el-col :span="8"
+          class="table_border thead"
+          :style="index%2==0?'background:#dcdbdb':''">{{item.CookbookSetInDateInfo.ChooseDate.substr(0,10)}}</el-col>
+        <el-col :span="8"
+          class="table_border thead"
+          :style="index%2==0?'background:#dcdbdb':''">{{item.CookbookSetInDateInfo.Price}}元</el-col>
+      </div>
+
+    </el-row>
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+import Vue from 'vue'
+
+Vue.prototype.$ajax = axios
+
+axios.defaults.baseURL = 'http://localhost:7878'
+
+export default {
+  data() {
+    return {
+      tableData: [{
+        date: '2016-05-02',
+        name: '王小虎',
+        address: '上海市普陀区金沙江路 1518 弄'
+      }, {
+        date: '2016-05-04',
+        name: '王小虎',
+        address: '上海市普陀区金沙江路 1517 弄'
+      }, {
+        date: '2016-05-01',
+        name: '王小虎',
+        address: '上海市普陀区金沙江路 1519 弄'
+      }, {
+        date: '2016-05-03',
+        name: '王小虎',
+        address: '上海市普陀区金沙江路 1516 弄'
+      }],
+      jsonFoodData: []
+    }
+  },
+  beforeMount() {
+    this.getRecord()
+  },
+  methods: {
+    backTwo(event) {
+      this.$router.push({
+        path: '/two'
+      })
+      console.log(this)
+    },
+    getRecord() {
+      console.log('发送数据')
+      axios.get('/Interface/Common/GetPCStaffOrderMealByCommand.ashx', {
+        params: {
+          informationNum: '441622198405095176', // this.informationNum,
+          Datetime: '2020-08-06'
+        }
+      }).then(res => {
+        this.jsonFoodData = res.data.result
+        console.log('clickfun:', res.data.result)
+      })
+    }
+  }
+}
+</script>
+
+<style>
+.table_border {
+  border: 1px solid black;
+}
+.thead {
+  height: 40px;
+  text-align: center;
+  line-height: 36px;
+}
+.titleClass {
+  font-size: 38px;
+  width: 250px;
+  height: 50px;
+  text-align: center;
+  display: inline-block;
+}
+</style>
