@@ -1,11 +1,13 @@
 <template>
-  <div>
-    <el-row>
-      <el-col :span="8">
-        <el-button @click="backTwo()">返回</el-button>
+  <div class="backStyle">
+    <el-row class="bodyStyle">
+      <el-col :span="8"
+        style="margin-top:10px;">
+        <el-button @click="backTwo()"
+          style="margin-left:16px;width:200px;font-size:36px">返回</el-button>
       </el-col>
       <el-col :span="8"
-        style="text-align:center">
+        style="text-align:center;margin-top:10px">
         <el-tag class="titleClass">
           <div style="margin-top:6px;">消费记录</div>
         </el-tag>
@@ -13,7 +15,7 @@
       <el-col :span="8">&nbsp;</el-col>
     </el-row>
 
-    <el-row class="table_border"
+    <el-row class="table_border bodyStyle"
       style="margin-top:16px">
       <el-col :span="8"
         class="table_border thead">姓名</el-col>
@@ -25,13 +27,13 @@
         :key="item+index.toString()">
         <el-col :span="8"
           class="table_border thead"
-          :style="index%2==0?'background:#dcdbdb':''">杨志强</el-col>
+          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">杨志强</el-col>
         <el-col :span="8"
           class="table_border thead"
-          :style="index%2==0?'background:#dcdbdb':''">{{item.CookbookSetInDateInfo.ChooseDate.substr(0,10)}}</el-col>
+          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.CookbookSetInDateInfo.ChooseDate.substr(0,10)}}</el-col>
         <el-col :span="8"
           class="table_border thead"
-          :style="index%2==0?'background:#dcdbdb':''">{{item.CookbookSetInDateInfo.Price}}元</el-col>
+          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.CookbookSetInDateInfo.Price}}元</el-col>
       </div>
 
     </el-row>
@@ -83,7 +85,7 @@ export default {
       console.log('发送数据')
       axios.get('/Interface/Common/GetPCStaffOrderMealByCommand.ashx', {
         params: {
-          informationNum: '441622198405095176', // this.informationNum,
+          informationNum: '441622198405095176', //this.informationNum,
           Datetime: '2020-08-06'
         }
       }).then(res => {
@@ -100,6 +102,7 @@ export default {
   border: 1px solid black;
 }
 .thead {
+  background: white;
   height: 40px;
   text-align: center;
   line-height: 36px;
@@ -110,5 +113,15 @@ export default {
   height: 50px;
   text-align: center;
   display: inline-block;
+}
+.backStyle {
+  background: rgb(215, 245, 255);
+}
+
+.bodyStyle {
+  width: 80%;
+  clear: both;
+  display: block;
+  margin: auto;
 }
 </style>

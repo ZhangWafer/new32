@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="background:rgb(215, 245, 255)">
     <el-container>
       <el-header style="background:#409eff;">
         <el-row>
