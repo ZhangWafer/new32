@@ -1,19 +1,28 @@
 <template>
   <div style="background:rgb(215, 245, 255)">
     <h1>点评</h1>
-
+    <el-select v-model="selectValue"
+      placeholder="请选择"
+      @change="selectChange(selectValue)">
+      <el-option v-for="(item,index) in foodList"
+        :key="index"
+        :label="mealToCHN(item.CookbookSetInDateInfo.CookbookEnum)+'-消费订单号'+item.OrderMealId"
+        :value="item.OrderMealId">
+      </el-option>
+    </el-select>
     <el-button @click="getFoodFun()">获取</el-button>
     <el-button @click="backTwo()">back</el-button>
+    <el-button @click="commitFun()">投票</el-button>
     <el-row>
       <el-col :span='12'
-        v-for="item in foodList"
-        :key="item"
+        v-for="(item,index) in selectedFoodLsit"
+        :key="index"
         style="margin-bottom:12px">
         <el-card class="cardStyle">
-          <img :src="urlPic(item.icon)"
+          <img :src="urlPic(item.Icon)"
             class="image">
-          <div style="padding: 14px;">
-            <span>{{item.id+'--'+item.name}}</span>
+          <div style="padding: 14px;text-align:center;font-size:36px;">
+            <span>{{item.Name}}</span>
             <div class="bottom clearfix">
               <el-row>
                 <el-col :span="12"
@@ -52,7 +61,9 @@ export default {
     return {
       currentDate: new Date(),
       foodList: [],
-      foodMap: {}
+      selectedFoodLsit: [],
+      foodMap: {},
+      selectValue: ''
     }
   },
   methods: {
@@ -62,6 +73,38 @@ export default {
       })
       console.log(this)
     },
+    commitFun() {
+      //http://localhost:7028/Interface/Common/CookbookComment.ashx
+      const postData = {
+        InformationNum: '442828196211120012',
+        CookbookSetInDateId: '1',
+        OrderMealId: '2',
+        Comments: [{
+          cookbookId: '199',
+          commentEnum: 'Satisfactory'
+        }, {
+          cookbookId: '332',
+          commentEnum: 'Unsatisfactory',
+          commentItem: '2'
+        }]
+      }
+      axios.post('/Interface/Common/CookbookComment.ashx', postData).then(res => {
+        console.log('postRes', res)
+        this.$message({
+          message: '评价成功',
+          type: 'success'
+        })
+      })
+    },
+    //选择变化触发
+    selectChange(selectValue) {
+      console.log('当前选择' + selectValue)
+
+      this.selectedFoodLsit = this.foodList.filter((item => item.OrderMealId === selectValue))[0].CookbookInfos
+
+      console.log('内容' + JSON.stringify(this.selectedFoodLsit))
+    }
+    ,
     getFoodFun() {
       axios.get('/Interface/Common/GetPCStaffOrderMealByCommand.ashx', {
         params: {
@@ -69,21 +112,22 @@ export default {
           Datetime: '2020-09-14'
         }
       }).then(res => {
-        console.log('resresres', res)
+        this.foodList = res.data.result
+        console.log('resresres', this.foodList)
         //CookbookInfos
-        res.data.result.forEach(element => {
-          const foodtemp = element.CookbookInfos
-          foodtemp.forEach(foodItem => {
-            this.$set(this.foodMap, foodItem.Name, foodItem.Id + '%%' + foodItem.Icon)
-          })
-        })
+        //res.data.result.forEach(element => {
+        //const foodtemp = element.CookbookInfos
+        //foodtemp.forEach(foodItem => {
+        //this.$set(this.foodMap, foodItem.Name, foodItem.Id + '%%' + foodItem.Icon)
+        //})
+        //})
 
-        //把map塞进list
-        for (var key in this.foodMap) {
-          this.foodList.push({ 'id': this.foodMap[key].split('%%')[0], 'icon': this.foodMap[key].split('%%')[1], 'name': key })
-        }
+        ////把map塞进list
+        //for (var key in this.foodMap) {
+        //this.foodList.push({ 'id': this.foodMap[key].split('%%')[0], 'icon': this.foodMap[key].split('%%')[1], 'name': key })
+        //}
 
-        console.log('clickfun:', this.foodList)
+        //console.log('clickfun:', this.foodList)
       })
     }
   },
@@ -95,6 +139,26 @@ export default {
     },
     foodlistHandle() {
       return new Set(this.foodList)
+    },
+    mealToCHN(mealName) {
+      return function (mealName) {
+        let returnName = ''
+        switch (mealName) {
+          case 'Breakfast':
+            returnName = '早餐'
+            break;
+          case 'Lunch':
+            returnName = '午餐'
+            break;
+          case 'Supper':
+            returnName = '晚餐'
+            break;
+          default:
+            break;
+        }
+        return returnName
+      }
+
     }
   }
 }

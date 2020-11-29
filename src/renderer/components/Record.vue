@@ -1,4 +1,4 @@
-<template>
+<template >
   <div class="backStyle">
     <el-row class="bodyStyle">
       <el-col :span="8"
@@ -30,10 +30,10 @@
           :style="index%2==0?'background:#dcdbdb!important;':'background:white'">杨志强</el-col>
         <el-col :span="8"
           class="table_border thead"
-          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.CookbookSetInDateInfo.ChooseDate.substr(0,10)}}</el-col>
+          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.ChooseDate.substr(0,10)}}</el-col>
         <el-col :span="8"
           class="table_border thead"
-          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.CookbookSetInDateInfo.Price}}元</el-col>
+          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.Price}}元</el-col>
       </div>
 
     </el-row>
@@ -81,7 +81,7 @@ export default {
       })
       console.log(this)
     },
-    getRecord() {
+    getRecord2() {
       console.log('发送数据')
       axios.get('/Interface/Common/GetPCStaffOrderMealByCommand.ashx', {
         params: {
@@ -91,6 +91,19 @@ export default {
       }).then(res => {
         this.jsonFoodData = res.data.result
         console.log('clickfun:', res.data.result)
+      })
+    },
+    getRecord() {
+      console.log('发送数据')
+      axios.get('/Interface/PC/GetPCStaffAlreadyOrderMeal.ashx', {
+        params: {
+          pcid: '1747', //this.informationNum,
+          pageIndex: '1',
+          pageSize: '10'
+        }
+      }).then(res => {
+        this.jsonFoodData = res.data.pccsidList
+        console.log('clickfun:', res.data.pccsidList)
       })
     }
   }
@@ -116,6 +129,7 @@ export default {
 }
 .backStyle {
   background: rgb(215, 245, 255);
+  height: 900px;
 }
 
 .bodyStyle {
