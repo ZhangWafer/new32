@@ -1,16 +1,21 @@
 <template>
   <div style="background:rgb(215, 245, 255)">
-    <h1>点评</h1>
-    <el-select v-model="selectValue"
-      placeholder="请选择"
-      @change="selectChange(selectValue)">
-      <el-option v-for="(item,index) in foodList"
-        :key="index"
-        :label="mealToCHN(item.CookbookSetInDateInfo.CookbookEnum)+'-消费订单号'+item.OrderMealId"
-        :value="item.OrderMealId">
-      </el-option>
-    </el-select>
-    <el-button @click="getFoodFun()">获取</el-button>
+    <div style="text-align:center">
+      <h1>菜品点评</h1>
+    </div>
+    <div style="text-align:center">
+      <el-select v-model="selectValue"
+        placeholder="请选择"
+        @change="selectChange(selectValue)">
+        <el-option v-for="(item,index) in foodList"
+          :key="index"
+          :label="mealToCHN(item.CookbookSetInDateInfo.CookbookEnum)+'-消费订单号'+item.OrderMealId"
+          :value="item.OrderMealId">
+        </el-option>
+      </el-select>
+    </div>
+
+    <!-- <el-button @click="getFoodFun()">获取</el-button> -->
     <el-button @click="backTwo()">back</el-button>
     <el-button @click="commitFun()">投票</el-button>
     <el-row>
@@ -28,13 +33,43 @@
                 <el-col :span="12"
                   class="col-Style">
                   <el-button type="success"
-                    class="button itemStyle">点赞</el-button>
+                    class="button itemStyle"
+                    :disabled="buttonBoolArray[index]"
+                    @click="disableButtonFunGood(index)">点赞<i v-if="buttonBoolArray[index]"
+                      class="el-icon-check"></i></el-button>
                 </el-col>
-                <el-col :span="12"
+                <el-col :span="!buttonBoolArray[index]?0:12"
                   class="col-Style">
                   <el-button type="danger"
-                    class="button itemStyle">差评</el-button>
+                    class="button itemStyle"
+                    :disabled="!buttonBoolArray[index]"
+                    v-if="buttonBoolArray[index]"
+                    @click="disableButtonFunBad(index)">差评<i v-if="!buttonBoolArray[index]"
+                      class="el-icon-check"></i></el-button>
                 </el-col>
+                <el-col :span="!buttonBoolArray[index]?12:0"
+                  class="col-Style">
+                  <el-col :span="20">
+                    <el-select v-model="badSelectedArray[index]"
+                      placeholder="差评选项"
+                      v-if="!buttonBoolArray[index]"
+                      style="margin-top:20px"
+                      @change="changeBadSelect(item.Id,badSelectedArray[index])">
+                      <el-option v-for="itemBad in badSelectOptions"
+                        :key="itemBad.Id"
+                        :label="itemBad.Name"
+                        :value="itemBad.Id">
+                      </el-option>
+                    </el-select>
+                  </el-col>
+                  <el-col :span="2">
+                    <i v-if="!buttonBoolArray[index]"
+                      style="margin-top:20px"
+                      class="el-icon-check"></i>
+                  </el-col>
+
+                </el-col>
+
               </el-row>
             </div>
           </div>
@@ -63,8 +98,17 @@ export default {
       foodList: [],
       selectedFoodLsit: [],
       foodMap: {},
-      selectValue: ''
+      selectValue: '',
+      buttonBoolArray: [],
+      badSelectOptions: [],//差评选择项
+      badSelectedArray: [],//差评选中绑定值
+      commitResMap: {}
     }
+  },
+  beforeMount() {
+    console.log(666666)
+    localStorage.setItem("InformationNum", "442828196211120012")
+    this.getFoodFun()
   },
   methods: {
     backTwo(event) {
@@ -73,20 +117,42 @@ export default {
       })
       console.log(this)
     },
+    //差评方法
+    changeBadSelect(foodId, badChooseId) {
+      console.log('进来this.badSelectedArray', this.badSelectedArray)
+      //差评json对象
+      let tempJsonBad = {
+        "cookbookId": foodId,
+        "commentEnum": "Unsatisfactory",
+        "commentItem": badChooseId
+      }
+      this.$set(this.commitResMap, foodId, tempJsonBad)
+      console.log('差评之后的map', this.commitResMap)
+    },
+    disableButtonFunGood(BtnIndex) {
+      this.$set(this.buttonBoolArray, BtnIndex, true)
+    },
+    disableButtonFunBad(BtnIndex) {
+      this.$set(this.buttonBoolArray, BtnIndex, false)
+    },
+    //提交方法
     commitFun() {
+      let commitInfoNum = localStorage.getItem("InformationNum")//身份证
+      let cookbookSetInDateId = localStorage.getItem("CookbookSetInDateId")//当前餐次id
       //http://localhost:7028/Interface/Common/CookbookComment.ashx
+      //做评论数组的jsondata
+      let judgeArrayTemp = []
+      // this.commitResMap.map((item, index) => {
+      //   judgeArrayTemp.push(item)
+      // })
+      for (var key in this.commitResMap) {
+        judgeArrayTemp.push(this.commitResMap[key])
+      }
       const postData = {
-        InformationNum: '442828196211120012',
-        CookbookSetInDateId: '1',
-        OrderMealId: '2',
-        Comments: [{
-          cookbookId: '199',
-          commentEnum: 'Satisfactory'
-        }, {
-          cookbookId: '332',
-          commentEnum: 'Unsatisfactory',
-          commentItem: '2'
-        }]
+        InformationNum: commitInfoNum,
+        CookbookSetInDateId: cookbookSetInDateId,
+        OrderMealId: this.selectValue.toString(),//转字符
+        Comments: judgeArrayTemp
       }
       axios.post('/Interface/Common/CookbookComment.ashx', postData).then(res => {
         console.log('postRes', res)
@@ -98,14 +164,33 @@ export default {
     },
     //选择变化触发
     selectChange(selectValue) {
+      //情况选择内容
+      this.buttonBoolArray = []
       console.log('当前选择' + selectValue)
-
       this.selectedFoodLsit = this.foodList.filter((item => item.OrderMealId === selectValue))[0].CookbookInfos
-
-      console.log('内容' + JSON.stringify(this.selectedFoodLsit))
+      //创建默认button可用disable标志位
+      this.selectedFoodLsit.forEach((item) => {
+        this.buttonBoolArray.push(true)
+        //默认都是好评
+        let tempJsonGood = {
+          "cookbookId": item.Id,
+          "commentEnum": "Satisfactory"
+        }
+        this.$set(this.commitResMap, item.Id, tempJsonGood)
+      })
+      console.log("this.commitResMap", this.commitResMap)
+      console.log('内容222222' + JSON.stringify(this.selectedFoodLsit))
     }
     ,
     getFoodFun() {
+      //获取菜品差评选项
+      axios.get('/Interface/Common/GetCookbookCommentItem.ashx').then((res) => {
+        res.data.Items.forEach(element => {
+          this.badSelectOptions.push(element)
+        })
+      }
+      )
+      //获取菜品请求
       axios.get('/Interface/Common/GetPCStaffOrderMealByCommand.ashx', {
         params: {
           informationNum: '441622198405095176', //this.informationNum,
@@ -114,20 +199,12 @@ export default {
       }).then(res => {
         this.foodList = res.data.result
         console.log('resresres', this.foodList)
-        //CookbookInfos
-        //res.data.result.forEach(element => {
-        //const foodtemp = element.CookbookInfos
-        //foodtemp.forEach(foodItem => {
-        //this.$set(this.foodMap, foodItem.Name, foodItem.Id + '%%' + foodItem.Icon)
-        //})
-        //})
+        //保存cookbooksetindateId
+        if (this.foodList.length != 0) {
+          localStorage.setItem("CookbookSetInDateId", res.data.result[0].CookbookSetInDateInfo.Id)
+        }
 
-        ////把map塞进list
-        //for (var key in this.foodMap) {
-        //this.foodList.push({ 'id': this.foodMap[key].split('%%')[0], 'icon': this.foodMap[key].split('%%')[1], 'name': key })
-        //}
 
-        //console.log('clickfun:', this.foodList)
       })
     }
   },
@@ -191,9 +268,19 @@ export default {
   width: 60px;
 }
 
+.buttonCss2 {
+  width: 180px !important;
+  height: 80px !important;
+  padding: 0;
+  float: none;
+  font-size: 20px;
+  width: 60px;
+  background: black !important;
+}
+
 .image {
   width: 70%;
-  height: 300px;
+  height: 260px;
   clear: both;
   display: block;
   margin: auto;
