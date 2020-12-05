@@ -14,10 +14,12 @@
         </el-option>
       </el-select>
     </div>
+    <div style="text-align:center;margin-top:20px;">
+      <!-- <el-button @click="getFoodFun()">获取</el-button> -->
+      <el-button @click="backTwo()">返回上一页</el-button>
+      <el-button @click="commitFun()">投票</el-button>
+    </div>
 
-    <!-- <el-button @click="getFoodFun()">获取</el-button> -->
-    <el-button @click="backTwo()">back</el-button>
-    <el-button @click="commitFun()">投票</el-button>
     <el-row>
       <el-col :span='12'
         v-for="(item,index) in selectedFoodLsit"
@@ -87,7 +89,7 @@ import Vue from 'vue'
 
 Vue.prototype.$ajax = axios
 
-const baseUrl = 'http://localhost:7878'
+const baseUrl = localStorage.getItem("baseUrl")
 
 axios.defaults.baseURL = baseUrl
 
@@ -160,7 +162,14 @@ export default {
           message: '评价成功',
           type: 'success'
         })
+        setTimeout(() => {
+          this.$router.push({
+            path: '/two'
+          })
+        }, 1500);
       })
+
+
     },
     //选择变化触发
     selectChange(selectValue) {

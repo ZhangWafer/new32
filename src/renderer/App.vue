@@ -15,7 +15,10 @@ export default {
   name: 'wafer-project',
   components: {
     one
-  }
+  },
+  created() {
+    localStorage.setItem('baseUrl', 'http://localhost:7878')
+  },
 }
 
 </script>

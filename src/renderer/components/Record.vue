@@ -46,7 +46,8 @@ import Vue from 'vue'
 
 Vue.prototype.$ajax = axios
 
-axios.defaults.baseURL = 'http://localhost:7878'
+const baseUrl = localStorage.getItem("baseUrl")
+axios.defaults.baseURL = baseUrl
 
 export default {
   data() {

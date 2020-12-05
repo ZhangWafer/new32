@@ -41,6 +41,31 @@
             </el-button>
           </el-col>
         </el-row>
+        <!-- 点餐进入窗口 -->
+        <el-dialog title="自助点餐系统"
+          :visible.sync="dialogVisible"
+          width="30%"
+          :show-close="false"
+          center
+          :close-on-click-modal='false'
+          :close-on-press-escape='false'>
+          <el-row style="text-align:center;font-size:18px;">
+            点击按钮进入点餐
+          </el-row>
+          <span slot="footer"
+            class="dialog-footer">
+            <el-row>
+              <el-col :span="24">
+                <el-button type="primary"
+                  style="width:80%  "
+                  @click="enterJudge()">
+                  进入
+                </el-button>
+              </el-col>
+
+            </el-row>
+          </span>
+        </el-dialog>
       </el-main>
       <el-footer style="background:rgba(255, 23, 23, 0.82);">
         <el-button @click="goOne()"
@@ -55,12 +80,15 @@ import axios from 'axios'
 import Vue from 'vue'
 import { mapState } from 'vuex'
 
+const baseUrl = localStorage.getItem("baseUrl")
+axios.defaults.baseURL = baseUrl
 Vue.prototype.$ajax = axios
 
 export default {
   data: function () {
     return {
-      testValue: false
+      testValue: false,
+      dialogVisible: true,
     }
   },
   created: function () {
@@ -79,6 +107,17 @@ export default {
   },
 
   methods: {
+    enterJudge() {
+      axios.get('/Interface/Common/GetFaceDeviceLogBySN.ashx', { params: { 'sn': 'C02' } }).then(res => {
+        console.log('人脸数据！:', res.data)
+        localStorage.setItem("InformationNum", res.data.faceDeviceLog[0].InformationNum)
+        this.dialogVisible = false
+        this.$message({
+          dangerouslyUseHTMLString: true,
+          message: '<strong style="color:black;font-size:36px;">' + res.data.faceDeviceLog[0].Name + '您好！欢迎进入！</strong>'
+        });
+      })
+    },
     testMethod() {
       console.log('66666666666')
     },
