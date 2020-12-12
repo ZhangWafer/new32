@@ -9,7 +9,7 @@
       <el-col :span="8"
         style="text-align:center;margin-top:10px">
         <el-tag class="titleClass">
-          <div style="margin-top:6px;">消费记录</div>
+          <div style="margin-top:6px;">充值记录</div>
         </el-tag>
       </el-col>
       <el-col :span="8">&nbsp;</el-col>
@@ -22,27 +22,27 @@
       <el-col :span="8"
         class="table_border thead">消费时间</el-col>
       <el-col :span="8"
-        class="table_border thead">消费金额</el-col>
+        class="table_border thead">充值金额</el-col>
       <div v-for="(item,index) in jsonFoodData"
         :key="item+index.toString()">
         <el-col :span="8"
           class="table_border thead"
-          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{recordName}}</el-col>
+          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.PCStaffName}}</el-col>
         <el-col :span="8"
           class="table_border thead"
-          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.ChooseDate.substr(0,10)}}</el-col>
+          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.AmountDate.substr(0,10)}}</el-col>
         <el-col :span="8"
           class="table_border thead"
-          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.Price}}元</el-col>
+          :style="index%2==0?'background:#dcdbdb!important;':'background:white'">{{item.Amount}}元</el-col>
       </div>
 
     </el-row>
     <div style="text-align:center;margin-top:20px">
-      <el-pagination @current-change="handleCurrentChange"
+      <!-- <el-pagination @current-change="handleCurrentChange"
         :current-page.sync="currentPage"
         :page-size="pageSize"
         :total="totalNum">
-      </el-pagination>
+      </el-pagination> -->
     </div>
 
   </div>
@@ -80,8 +80,7 @@ export default {
       jsonFoodData: [],
       currentPage: 0,
       totalNum: 0,
-      pageSize: 15,
-      recordName: localStorage.getItem("Name")
+      pageSize: 15
     }
   },
   beforeMount() {
@@ -135,16 +134,14 @@ export default {
       /////////////////
       console.log('发送数据')
       let getPcidNum = await this.getPcid()
-      axios.get('/Interface/PC/GetPCStaffAlreadyOrderMeal.ashx', {
+      axios.get('/Interface/PC/GetPCDeposit.ashx', {
         params: {
           pcid: getPcidNum, //this.informationNum,
-          pageIndex: currentPage.toString() == '0' ? '1' : currentPage.toString(),
-          pageSize: '15'
         }
       }).then(res => {
-        this.jsonFoodData = res.data.pccsidList
+        this.jsonFoodData = res.data.DepositList
         this.totalNum = res.data.total
-        console.log('clickfun:', res.data.pccsidList)
+        console.log('clickfun:', res.data.DepositList)
       })
     }
   }

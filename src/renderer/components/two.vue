@@ -20,7 +20,7 @@
       </el-header>
       <el-main>
         <el-row style="margin-top:80px">
-          <el-col :span=12
+          <el-col :span=8
             style="text-align:center;height:600px">
             <el-button type="success"
               round
@@ -30,7 +30,17 @@
               消费记录
             </el-button>
           </el-col>
-          <el-col :span=12
+          <el-col :span=8
+            style="text-align:center;height:600px">
+            <el-button type="warning"
+              round
+              style="display:inline-block;font-size:90px;height:500px"
+              class="bigButton"
+              @click="goCZRecord()">
+              充值记录
+            </el-button>
+          </el-col>
+          <el-col :span=8
             style="text-align:center;height:600px;">
             <el-button style="display:inline-block;font-size:90px;height:500px"
               round
@@ -40,6 +50,7 @@
               菜品点评
             </el-button>
           </el-col>
+
         </el-row>
         <!-- 点餐进入窗口 -->
         <el-dialog title="自助点餐系统"
@@ -105,13 +116,16 @@ export default {
       console.log('al1sum变了！！！')
     }
   },
-
   methods: {
     enterJudge() {
       axios.get('/Interface/Common/GetFaceDeviceLogBySN.ashx', { params: { 'sn': 'C02' } }).then(res => {
         console.log('人脸数据！:', res.data)
         localStorage.setItem("InformationNum", res.data.faceDeviceLog[0].InformationNum)
+        localStorage.setItem("Name", res.data.faceDeviceLog[0].Name)
+        //30s判断
+
         this.dialogVisible = false
+
         this.$message({
           dangerouslyUseHTMLString: true,
           message: '<strong style="color:black;font-size:36px;">' + res.data.faceDeviceLog[0].Name + '您好！欢迎进入！</strong>'
@@ -124,6 +138,12 @@ export default {
     goRecord(event) {
       this.$router.push({
         path: '/record'
+      })
+      console.log(this)
+    },
+    goCZRecord(event) {
+      this.$router.push({
+        path: '/czrecord'
       })
       console.log(this)
     },

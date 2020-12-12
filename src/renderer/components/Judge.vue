@@ -52,17 +52,23 @@
                 <el-col :span="!buttonBoolArray[index]?12:0"
                   class="col-Style">
                   <el-col :span="20">
-                    <el-select v-model="badSelectedArray[index]"
-                      placeholder="差评选项"
-                      v-if="!buttonBoolArray[index]"
-                      style="margin-top:20px"
-                      @change="changeBadSelect(item.Id,badSelectedArray[index])">
-                      <el-option v-for="itemBad in badSelectOptions"
-                        :key="itemBad.Id"
-                        :label="itemBad.Name"
-                        :value="itemBad.Id">
-                      </el-option>
-                    </el-select>
+                    <el-row>
+                      <el-select v-model="badSelectedArray[index]"
+                        placeholder="差评选项"
+                        v-if="!buttonBoolArray[index]"
+                        style="margin-top:10px"
+                        @change="changeBadSelect(item.Id,badSelectedArray[index])"
+                        :value="defaultOptionArray[index]">
+                        <el-option v-for="itemBad in badSelectOptions"
+                          :key="itemBad.Id"
+                          :label="itemBad.Name"
+                          :value="itemBad.Id">
+                        </el-option>
+                      </el-select>
+                    </el-row>
+                    <el-row>
+                      <p style="font-size:20px;color:red;">请选择差评选项</p>
+                    </el-row>
                   </el-col>
                   <el-col :span="2">
                     <i v-if="!buttonBoolArray[index]"
@@ -104,7 +110,9 @@ export default {
       buttonBoolArray: [],
       badSelectOptions: [],//差评选择项
       badSelectedArray: [],//差评选中绑定值
-      commitResMap: {}
+      commitResMap: {},
+      infoNum: localStorage.getItem("InformationNum"),
+      defaultOptionArray: []
     }
   },
   beforeMount() {
@@ -124,9 +132,10 @@ export default {
       console.log('进来this.badSelectedArray', this.badSelectedArray)
       //差评json对象
       let tempJsonBad = {
-        "cookbookId": foodId,
+        "cookbookId": foodId.toString(),
         "commentEnum": "Unsatisfactory",
-        "commentItem": badChooseId
+        "commentItem": badChooseId,
+        "personComment": ''
       }
       this.$set(this.commitResMap, foodId, tempJsonBad)
       console.log('差评之后的map', this.commitResMap)
@@ -156,7 +165,8 @@ export default {
         OrderMealId: this.selectValue.toString(),//转字符
         Comments: judgeArrayTemp
       }
-      axios.post('/Interface/Common/CookbookComment.ashx', postData).then(res => {
+      console.log('postDatapostDatapostData', JSON.stringify(postData))
+      axios.post('/Interface/Common/CookbookComment.ashx', { params: postData }).then(res => {
         console.log('postRes', res)
         this.$message({
           message: '评价成功',
@@ -177,18 +187,25 @@ export default {
       this.buttonBoolArray = []
       console.log('当前选择' + selectValue)
       this.selectedFoodLsit = this.foodList.filter((item => item.OrderMealId === selectValue))[0].CookbookInfos
+
+      let newobj = {};
+      this.selectedFoodLsit = this.selectedFoodLsit.reduce((preVal, curVal) => {
+        newobj[curVal.Icon] ? '' : newobj[curVal.Icon] = preVal.push(curVal);
+        return preVal
+      }, [])
       //创建默认button可用disable标志位
       this.selectedFoodLsit.forEach((item) => {
         this.buttonBoolArray.push(true)
+        this.badSelectedArray.push(this.badSelectOptions[0].Id)//默认选择1
         //默认都是好评
         let tempJsonGood = {
-          "cookbookId": item.Id,
+          "cookbookId": item.Id.toString(),
           "commentEnum": "Satisfactory"
         }
         this.$set(this.commitResMap, item.Id, tempJsonGood)
       })
       console.log("this.commitResMap", this.commitResMap)
-      console.log('内容222222' + JSON.stringify(this.selectedFoodLsit))
+      console.log('内容222222', this.selectedFoodLsit)
     }
     ,
     getFoodFun() {
@@ -199,21 +216,27 @@ export default {
         })
       }
       )
+      //获取当天日期
+      var nowDate = new Date();
+      var year = nowDate.getFullYear();
+      var month = nowDate.getMonth() + 1 < 10 ? "0" + (nowDate.getMonth() + 1) : nowDate.getMonth() + 1;
+      var day = nowDate.getDate() < 10 ? "0" + nowDate.getDate() : nowDate.getDate();
+      var dateStr = year + "-" + month + "-" + day;
       //获取菜品请求
       axios.get('/Interface/Common/GetPCStaffOrderMealByCommand.ashx', {
         params: {
-          informationNum: '441622198405095176', //this.informationNum,
-          Datetime: '2020-09-14'
+          informationNum: this.infoNum.toString(), //this.informationNum,
+          Datetime: dateStr
         }
       }).then(res => {
-        this.foodList = res.data.result
-        console.log('resresres', this.foodList)
-        //保存cookbooksetindateId
-        if (this.foodList.length != 0) {
-          localStorage.setItem("CookbookSetInDateId", res.data.result[0].CookbookSetInDateInfo.Id)
+        if (res.data != "") {
+          this.foodList = res.data.result
+          console.log('resresres', this.foodList)
+          //保存cookbooksetindateId
+          if (this.foodList.length != 0) {
+            localStorage.setItem("CookbookSetInDateId", res.data.result[0].CookbookSetInDateInfo.Id)
+          }
         }
-
-
       })
     }
   },
@@ -306,6 +329,7 @@ export default {
 }
 
 .cardStyle {
+  height: 468px;
   width: 80%;
   clear: both;
   display: block;
