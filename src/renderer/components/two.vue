@@ -100,6 +100,7 @@ export default {
     return {
       testValue: false,
       dialogVisible: true,
+      setTimeoutBool: false
     }
   },
   created: function () {
@@ -107,6 +108,17 @@ export default {
   },
   mounted() {
     console.log('mounted')
+    //定时器定时检查是否已进入，然后设置超时重刷脸
+    setInterval(() => {
+      if (this.dialogVisible == false) {
+        if (this.setTimeoutBool != true) {
+          setTimeout(() => {
+            this.dialogVisible = true
+            this.setTimeoutBool = true
+          }, 40 * 1000);//设置人脸超时时间60s
+        }
+      }
+    }, 40 * 1000);
   },
   updated() {
     console.log('updated')
@@ -117,19 +129,75 @@ export default {
     }
   },
   methods: {
+    getTimeDiff(time) {
+      var diff = '';
+      var time_diff = new Date().getTime() - time; //时间差的毫秒数 
+
+      //计算出相差天数 
+      var days = Math.floor(time_diff / (24 * 3600 * 1000));
+      if (days > 0) {
+        diff += days + '天';
+      }
+      //计算出小时数 
+      var leave1 = time_diff % (24 * 3600 * 1000);
+      var hours = Math.floor(leave1 / (3600 * 1000));
+      if (hours > 0) {
+        diff += hours + '小时';
+      } else {
+        if (diff !== '') {
+          diff += hours + '小时';
+        }
+      }
+      //计算相差分钟数 
+      var leave2 = leave1 % (3600 * 1000);
+      var minutes = Math.floor(leave2 / (60 * 1000));
+      if (minutes > 0) {
+        diff += minutes + '分';
+      } else {
+        if (diff !== '') {
+          diff += minutes + '分';
+        }
+      }
+      //计算相差秒数 
+      var leave3 = leave2 % (60 * 1000);
+      var seconds = Math.round(leave3 / 1000);
+      if (seconds > 0) {
+        diff += seconds + '秒';
+      } else {
+        if (diff !== '') {
+          diff += seconds + '秒';
+        }
+      }
+      return time_diff / 1000;
+    },
     enterJudge() {
-      axios.get('/Interface/Common/GetFaceDeviceLogBySN.ashx', { params: { 'sn': 'C02' } }).then(res => {
+      axios.get('/Interface/Common/GetFaceDeviceLogBySN.ashx', { params: { 'sn': localStorage.getItem('machineCode') } }).then(res => {
+        //获取配置文件定义的时间差
+        let timebtween = localStorage.getItem('timebtween')
+        //获取时间差
+        let betweenSeconds = this.getTimeDiff(new Date(res.data.faceDeviceLog[0].CreateTime).getTime())
         console.log('人脸数据！:', res.data)
-        localStorage.setItem("InformationNum", res.data.faceDeviceLog[0].InformationNum)
+        console.log('时间相差', betweenSeconds)
+        localStorage.setItem("InformationNum", res.data.faceDeviceLog[0].InformationNum, new Date().getTime() + 5000)
         localStorage.setItem("Name", res.data.faceDeviceLog[0].Name)
+
         //30s判断
+        if (betweenSeconds < parseInt(timebtween)) {
+          this.setTimeoutBool = false
+          this.dialogVisible = false
+          this.$message({
+            dangerouslyUseHTMLString: true,
+            message: '<strong style="color:black;font-size:36px;">' + res.data.faceDeviceLog[0].Name + '您好！欢迎进入！</strong>'
+          });
+        } else {
+          this.dialogVisible = true
+          this.$message({
+            dangerouslyUseHTMLString: true,
+            message: '<strong style="color:black;font-size:36px;">' + '人脸数据超时，请重刷！</strong>'
+          });
+        }
 
-        this.dialogVisible = false
 
-        this.$message({
-          dangerouslyUseHTMLString: true,
-          message: '<strong style="color:black;font-size:36px;">' + res.data.faceDeviceLog[0].Name + '您好！欢迎进入！</strong>'
-        });
       })
     },
     testMethod() {
